@@ -1,0 +1,38 @@
+"Modules"	"mprosle"
+"Erythrocytes (II)"	-0.235004012694967
+"Erythrocytes (I)"	-0.0617264396976462
+"Erythrocytes/ Cell cycle (III)"	-0.144322930938902
+"Erythrocytes/ Cell cycle (II)"	0.463952333709585
+"Erythrocytes/ Cell cycle (I)"	0.510154132024208
+"Platelets (II)"	1.45502582135337
+"Platelets (I)"	0.57674777020234
+"Hox cluster VI"	0.315763817618325
+"T cells/ Leukocytes, T cells"	-0.232937186384446
+"T cells/ T cell differentiation, NK cells"	-1.16777182605986
+"T cells/ CORO1A-DEF6"	-1.43900436447833
+"Apoptosis/ CORO1A-DEF6"	1.07776618187384
+"Naive B cells"	1.60283285289829
+"BCR signaling"	1.54466323550944
+"NK cells"	-1.50310085997545
+"Mitochondrial stress/ NK cells"	-0.00335351375543649
+"Mitochondrial stress/ Proteasome (II)"	0.796809525263887
+"Mitochondrial stress/ Proteasome (I)"	-0.167072757819908
+"Mitochondrial stress/ Spliceosome (III)"	0.254118542026247
+"Mitochondrial stress/ Spliceosome (II)"	0.416723444078827
+"Mitochondrial stress/ Spliceosome (I)"	-0.204972412842049
+"Cytoskeletal remodeling"	-0.178157922477482
+"Generic"	1.32882366867211
+"Plasma cells/ Immunoglobulins, T cells"	1.0702882052066
+"Plasma cells/ Immunoglobulins"	1.12969893415567
+"Interferon/ proteasome"	0.0126185655908543
+"Interferon/ Dendritic cells"	0.872094815284018
+"Neutrophil/ Extracellular matrix"	3.1435835990448
+"Inflammation/ Neutrophils"	2.73004492444668
+"Inflammation/ Neutrophils, Monocytes (II)"	1.64898048772782
+"Inflammation/ Neutrophils, Monocytes (I)"	1.87854321343591
+"Inflammation/ Dendritic cell, Monocytes"	1.23359177413832
+"Monocytes/ TLR8-BAFF"	-0.197846957924124
+"Apoptosis/ Monocytes, Dendritic cells"	2.10522118715945
+"Inflammation/ Platelets"	0.854544036606568
+"Inflammation/ Cell cycle, Phosphatidylinositol (II)"	0.450113608527217
+"Inflammation/ Cell cycle, Phosphatidylinositol (I)"	1.30959275278216
