@@ -15,7 +15,7 @@ Also, you need to have ```R``` installed. You will find how to do it in the R pr
 
 # How to use it
 
-MyPROSLE estimates how affected are a serie of molecular pathways in a patient with respect to a distributions of healthy controls. The steps needed are located at [Script](/Script).
+MyPROSLE estimates how affected are a serie of molecular pathways in a patient with respect to a distributions of healthy controls. The steps needed are located at [Script](https://github.com/GENyO-BioInformatics/MyPROSLE/tree/main/Scripts).
 
 
 # Inputs and Outputs of MyPROSLE
