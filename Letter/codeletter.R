@@ -4,6 +4,9 @@
 ################################################################################
 ## Pre-procesing public LN datasets (GSE72326 and GSE99967)
 
+# Files needed can be downloaded from:
+# https://drive.google.com/drive/folders/1VscKg2blQVg7BJMF6nHaKpwX2R1tcOex?usp=sharing
+
 ## Set environment
 
 set.seed(12345678)
