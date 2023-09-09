@@ -14,6 +14,7 @@ set.seed(12345678)
 library("GEOquery")
 library("caret")
 library("stringr")
+library("stringi")
 library("parallel")
 
 source("utils.R")
@@ -44,8 +45,8 @@ data <- data[genome$fromGenes, ]
 finalGenes <- unique(genome$toGenes)
 
 temp <- mclapply(finalGenes, calculate_medians,
-  genome = genome,
-  expressionMatrix = data, mc.cores = 10
+                 genome = genome,
+                 expressionMatrix = data, mc.cores = 1
 )
 temp <- as.data.frame(do.call("rbind", temp))
 rownames(temp) <- finalGenes
@@ -74,7 +75,7 @@ write.table(Healthy, file = "GSE99967_healthy.tsv", sep = "\t", quote = F)
 
 metadata$LN <- ifelse(metadata$LN == "active LN (ALN)", "YES", "NO")
 metadata$pLN <- ifelse(metadata$LN == "NO", "NO",
-  ifelse(metadata$biopsy == "V", "NO", "YES")
+                       ifelse(metadata$biopsy == "V", "NO", "YES")
 )
 
 dataset <- list(SLE, Healthy, metadata)
@@ -145,19 +146,19 @@ for (i in 1:length(patients)) {
   tmp <- metadata[metadata$PatientID == patients[i], ]
   tmp <- tmp[order(tmp$Visit, decreasing = F), ]
   ref <- tmp[1, "date"]
-
+  
   for (j in 1:nrow(tmp)) {
     x <- as.numeric(difftime(strptime(tmp[j, "date"], format = "%d-%m-%Y"),
-      strptime(ref, format = "%d-%m-%Y"),
-      units = "days"
+                             strptime(ref, format = "%d-%m-%Y"),
+                             units = "days"
     ))
     metadata[metadata$PatientID == patients[i] &
-      metadata$Visit == tmp$Visit[j], "TimeFromVisits"] <- x
+               metadata$Visit == tmp$Visit[j], "TimeFromVisits"] <- x
   }
 }
 
 metadata$biopsyClass <- ifelse(is.na(metadata$biopsy), NA,
-  ifelse(str_detect(metadata$biopsy, "III") | str_detect(metadata$biopsy, "IV"), "Prolif", "Other")
+                               ifelse(str_detect(metadata$biopsy, "III") | str_detect(metadata$biopsy, "IV"), "Prolif", "Other")
 )
 
 SLE <- data[, rownames(metadata)]
@@ -185,6 +186,7 @@ saveRDS(Datasets.LN, "DatasetsLN.rds")
 ## Use the gene expression matrix in MyPROSLE to obtain the prediction results ##
 
 library("psych")
+library("dplyr")
 
 ## Here we provide a function to calculate Cohen's kappa from the two datasets of interest
 
@@ -198,15 +200,15 @@ prediction.without.healthy.GSE72326 <- read.delim("GSE72326_pred_without_healthy
 cohenK_function <- function(prediction.with.healthy, prediction.without.healthy) {
   prediction.with.healthy <- prediction.with.healthy %>% filter(Variable == "Proliferative nephritis")
   prediction.with.healthy <- prediction.with.healthy[, seq(4, ncol(prediction.with.healthy))] %>% as.numeric()
-
+  
   prediction.without.healthy <- prediction.without.healthy %>% filter(Variable == "Proliferative nephritis")
   prediction.without.healthy <- prediction.without.healthy[, seq(4, ncol(prediction.without.healthy))] %>% as.numeric()
-
+  
   cohenK <- as.numeric(cohen.kappa(x = cbind(
     ifelse(prediction.with.healthy >= 0.5, "YES", "NO"),
     ifelse(prediction.without.healthy >= 0.5, "YES", "NO")
   ))$kappa)
-
+  
   return(cohenK)
 }
 
@@ -230,23 +232,41 @@ pats <- unique(clin$PatientID)
 sel <- NULL
 for (i in 1:length(pats)) {
   tmp <- clin[clin$PatientID == pats[i], ]
-  if ("Y" %in% tmp$LN) {
+  #if ("Y" %in% tmp$LN) {
     tmp <- tmp[order(tmp$biopsy), ]
     sel <- c(sel, rownames(tmp)[1])
-  } else {
-    sel <- c(sel, c(rownames(tmp)[sample(1:nrow(tmp), 1)]))
-  }
+  # } else {
+  #   sel <- c(sel, c(rownames(tmp)[sample(1:nrow(tmp), 1)]))
+  # }
 }
 
 clin <- clin[sel, ]
 clin$pLN <- ifelse(is.na(clin$biopsyClass), "NO",
-  ifelse(clin$biopsyClass == "Prolif", "YES", "NO")
+                   ifelse(clin$biopsyClass == "Prolif", "YES", "NO")
 )
 
 Datasets.LN$GSE72326$metadata <- clin
 Datasets.LN$GSE72326$Disease <- Datasets.LN$GSE72326$Disease[, rownames(clin)]
 
+## Cohen first visit
+selectColumns<-c("Variable","Category","Algorithm",sel)
+cohenK_function(prediction.with.healthy.GSE72326[,selectColumns], 
+                prediction.without.healthy.GSE72326[,selectColumns]) # 0.656
+
+## aggretment
+x<-prediction.with.healthy.GSE72326[prediction.with.healthy.GSE72326$Variable=="Proliferative nephritis",sel]
+x<-ifelse(x>=0.5,"YES","NO")
+y<-prediction.without.healthy.GSE72326[prediction.without.healthy.GSE72326$Variable=="Proliferative nephritis",sel]
+y<-ifelse(y>=0.5,"YES","NO")
+
+agreet <- (table(x == y)["TRUE"]) /
+             (sum(table(x == y))) * 100
+# 83.9
+
 saveRDS(Datasets.LN, "DatasetsLN2.rds")
+
+
+
 
 
 ################################################################################
@@ -255,6 +275,7 @@ library("dplyr")
 
 # devtools::install_github("jordimartorell/pathMED") # Install wrapper of functions contained in MyPROSLE. The installation may take a long time
 
+library("ggplot2")
 library("pathMED")
 
 ## R Objects used in MyPROSLE web (used locally)
@@ -275,7 +296,7 @@ m <- getMscores(
   Patient = data,
   Healthy = healthy,
   genesets = paths,
-  cores = 10
+  cores = 1
 )
 
 originalPred <- predict(model.pLN, newdata = t(m), type = "prob")
@@ -286,31 +307,35 @@ res <- as.data.frame(matrix(ncol = 2, nrow = 0))
 for (i in 1:length(sampl)) {
   sampling <- sample(1:nrow(data), nrow(data) * sampl[i])
   dat <- data[sampling, ]
-
+  
   tmp <- getMscores(
     Patient = dat,
     Healthy = healthy[rownames(dat), ],
     genesets = paths,
     cores = 10
   )
-
+  
   pred <- predict(model.pLN, newdata = t(tmp), type = "prob")
-
+  
   ## Agreement
   agreet <- (table(ifelse(originalPred$YES >= 0.5, "YES", "NO") == ifelse(pred$YES >= 0.5, "YES", "NO"))["TRUE"] /
-    (sum(table(ifelse(originalPred$YES >= 0.5, "YES", "NO") == ifelse(pred$YES >= 0.5, "YES", "NO"))))) * 100
-
+               (sum(table(ifelse(originalPred$YES >= 0.5, "YES", "NO") == ifelse(pred$YES >= 0.5, "YES", "NO"))))) * 100
+  
   res <- rbind(res, unname(c(agreet, sampl[i])))
   colnames(res) <- NULL
 }
-colnames(res) <- c("Agreetment", "MissingGenes")
+colnames(res) <- c("Agreement", "MissingGenes")
 res$MissingGenes <- res$MissingGenes * 100
 
 ## Summarize results
 res_agg <- res %>%
   mutate(MissingGenes = factor(MissingGenes)) %>%
   group_by(MissingGenes) %>%
-  summarise(mean_agg = mean(Agreetment))
+  summarise(mean_agg = mean(Agreement))
+
+res$MissingGenes<-paste0(res$MissingGenes,"%")
+ggplot(res,aes(x=MissingGenes,y=Agreement)) + geom_jitter(alpha=0.7) + geom_boxplot()+theme_bw()
+
 
 ## Save results table
 write.table(res_agg, "MissingGenes.txt", sep = "\t", quote = F)
