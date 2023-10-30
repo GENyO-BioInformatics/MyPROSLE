@@ -239,6 +239,8 @@ for (i in 1:length(pats)) {
   #   sel <- c(sel, c(rownames(tmp)[sample(1:nrow(tmp), 1)]))
   # }
 }
+# First visit selection for each patient, from line 231 to 241
+# For random selection of visit from patients without biopsy, remove comments from line 231 to 241
 
 clin <- clin[sel, ]
 clin$pLN <- ifelse(is.na(clin$biopsyClass), "NO",
